@@ -4,23 +4,50 @@
 {
     //Required. Inputs the module expects.
     "inputs": [
-        //e.g.
-        /*
         {
-            "id": "from",
-            "title":"From"
+            "id": "owner",
+            "title":"Owner"
+        },
+        {
+            "id": "repo_slug",
+            "title":"Repo Slug"
+        },
+        {
+            "id": "name",
+            "title":"Name"
+        },
+        {
+            "id": "is_private",
+            "title":"Private"
+        },
+        {
+            "id": "description",
+            "title":"Description"
+        },
+        {
+            "id": "scm",
+            "title":"[hg or git]"
         }
-        */
     ],
     //Required. Outputs the module emits.
     "outputs": [
-      //e.g.
-      /*
         {
-            "id": "from",
-            "title":"From"
+            "id": "name",
+            "title":"Name"
+        },
+        {
+            "id": "owner",
+            "title":"Owner"
+        },
+        {
+            "id": "description",
+            "title":"Description"
+        },
+        {
+            "id": "last_updated",
+            "title":"Last Updated At"
         }
-      */
     ],
+    "icon": "bitbucket",
     "title": "Bitbucket Post New Repo" /* Required.A display name for the module */
 }
