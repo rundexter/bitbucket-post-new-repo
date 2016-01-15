@@ -5,97 +5,22 @@ var request = require('request').defaults({
     baseUrl: 'https://api.bitbucket.org/2.0/'
 });
 
-var globalPickResult = {
-    'name': 'name',
-    'description': 'description',
-    'last_updated': 'last_updated',
-    'owner': 'owner'
-};
-
-var pickInputs = ['name', 'is_private', 'description', 'scm'];
+var pickInputs = {
+        'owner': { key: 'owner', validate: { req: true } },
+        'repo_slug': { key: 'repo_slug', validate: { req: true } },
+        'is_private': { key: 'is_private', type: 'boolean' },
+        'name': 'name',
+        'description': 'description',
+        'scm': { key: 'scm', validate: { enum: ['git', 'hg'] } },
+    },
+    pickOutputs = {
+        'name': 'name',
+        'description': 'description',
+        'last_updated': 'last_updated',
+        'owner': 'owner'
+    };
 
 module.exports = {
-
-    authParams: function (dexter) {
-        var auth = {},
-            username = dexter.environment('bitbucket_username'),
-            password = dexter.environment('bitbucket_password');
-
-        if (username && password) {
-
-            auth.user = username;
-            auth.pass = password;
-        }
-
-        return _.isEmpty(auth)? false : auth;
-    },
-
-    /**
-     * Send api request.
-     *
-     * @param method
-     * @param api
-     * @param options
-     * @param auth
-     * @param callback
-     */
-    apiRequest: function (method, api, options, auth, callback) {
-
-        request[method]({url: api, form: options, auth: auth, json: true}, callback);
-    },
-
-    inputAttr: function (step) {
-        var data = {};
-
-        pickInputs.forEach(function (attrName) {
-
-            if (step.input(attrName).first() !== undefined)
-                data[attrName] = step.input(attrName).first()
-        });
-
-        if (data.is_private)
-            data.is_private = _(data.is_private).toString().toLowerCase() === 'true';
-
-        return data;
-    },
-
-    processResult: function (error, responce, body) {
-
-        if (error)
-
-            this.fail(error);
-
-        else if (responce && !body)
-
-            this.fail(responce.statusCode + ': Something is happened');
-
-        else if (responce && body.error)
-
-            this.fail(responce.statusCode + ': ' + JSON.stringify(body.error));
-
-        else
-
-            this.complete(util.pickResult(body, globalPickResult));
-
-    },
-
-    checkCorrectParams: function (auth, step) {
-        var result = true;
-
-        if (!auth) {
-
-            result = false;
-            this.fail('A [bitbucket_username, bitbucket_password] environment need for this module.');
-        }
-
-        if (!step.input('owner').first() || !step.input('repo_slug').first()) {
-
-            result = false;
-            this.fail('A [owner, repo_slug] inputs need for this module.');
-        }
-
-        return result;
-    },
 
     /**
      * The main entry point for the Dexter module
@@ -104,19 +29,26 @@ module.exports = {
      * @param {AppData} dexter Container for all data used in this workflow.
      */
     run: function(step, dexter) {
-        console.log(dexter.provider('bitbucket').credentials());
+        var credentials = dexter.provider('bitbucket').credentials(),
+            inputs = util.pickInputs(step, pickInputs),
+            validateErrors = util.checkValidateErrors(inputs, pickInputs);
 
-        var auth = this.authParams(dexter);
         // check params.
-        if (!this.checkCorrectParams(auth, step)) return;
+        if (validateErrors) 
+            return this.fail(validateErrors);
 
-        var inputAttr = this.inputAttr(step),
-            owner = step.input('owner').first().trim(),
-            repo_slug = step.input('repo_slug').first().trim();
         //send API request
-        this.apiRequest('post', 'repositories/' + owner + '/' + repo_slug, inputAttr, auth, function (error, responce, body) {
+        request.post({ 
+            uri: 'repositories/' + inputs.owner + '/' + inputs.repo_slug, 
+            form: _.omit(inputs, ['owner', 'repo_slug']), 
+            oauth: credentials,
+            json: true
+        }, function (error, responce, body) {
+            if (error || (body && body.error))
+                this.fail(error || body.error);
+            else
+                this.complete(util.pickOutputs(body, pickOutputs) || {});
 
-            this.processResult(error, responce, body);
         }.bind(this));
     }
 };
