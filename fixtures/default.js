@@ -62,8 +62,8 @@ module.exports = _.merge({
              * You should update this section with some test input for testing your module
              */
             input: {
-                owner: 'zaretskii',
-                repo_slug: 'repo-slug-3',
+                owner: 'owner',
+                repo_slug: 'repo-slug',
                 is_private: 'true',
                 name: 'name-3',
                 description: 'description',
