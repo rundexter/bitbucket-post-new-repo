@@ -48,6 +48,9 @@
             "title":"Last Updated At"
         }
     ],
+    "providers": [{
+        "name": "bitbucket"
+    }],
     "icon": "bitbucket",
     "title": "Bitbucket Post New Repo" /* Required.A display name for the module */
 }
