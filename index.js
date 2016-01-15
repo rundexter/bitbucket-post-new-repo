@@ -104,6 +104,7 @@ module.exports = {
      * @param {AppData} dexter Container for all data used in this workflow.
      */
     run: function(step, dexter) {
+        console.log(dexter.provider('bitbucket').credentials());
 
         var auth = this.authParams(dexter);
         // check params.
